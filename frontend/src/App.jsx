@@ -11,12 +11,12 @@ function App() {
   const [price, setPrice] = useState("");
 
   const fetchProducts = async () => {
-    const res = await axios.get("http://127.0.0.1:8000/api/products/");
+    const res = await axios.get("https://inventory-backend-z2ux.onrender.com/api/products/");
     setProducts(res.data);
   };
 
   const fetchDashboard = async () => {
-    const res = await axios.get("http://127.0.0.1:8000/api/dashboard/");
+    const res = await axios.get("https://inventory-backend-z2ux.onrender.com/api/dashboard/");
     setDashboard(res.data);
   };
 
@@ -26,7 +26,7 @@ function App() {
   }, []);
 
   const addProduct = async () => {
-    await axios.post("http://127.0.0.1:8000/api/products/", {
+    await axios.post("https://inventory-backend-z2ux.onrender.com/api/products/", {
       name,
       category,
       quantity,
@@ -43,7 +43,7 @@ function App() {
   };
 
   const deleteProduct = async (id) => {
-    await axios.delete(`http://127.0.0.1:8000/api/products/${id}/`);
+    await axios.delete(`https://inventory-backend-z2ux.onrender.com/api/products/${id}/`);
     fetchProducts();
     fetchDashboard();
   };
@@ -116,7 +116,6 @@ function App() {
 
 /* STYLES */
 const cardStyle = {
-  color:"black",
   flex: 1,
   background: "#1e293b",
   color: "white",
