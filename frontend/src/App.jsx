@@ -40,7 +40,14 @@ export default function App() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Automatically uses local backend if running locally, and Render backend if deployed on Netlify
+    // Ensure numeric fields are sent as actual numbers, not empty strings
+    const payload = {
+      ...form,
+      quantity: form.quantity !== '' ? Number(form.quantity) : 0,
+      reorder_point: form.reorder_point !== '' ? Number(form.reorder_point) : 0,
+      price: form.price !== '' ? Number(form.price) : 0,
+    };
+
     const API_URL = window.location.hostname === 'localhost' 
       ? 'http://127.0.0.1:8000/api/items/' 
       : 'https://inventory-backend-z2ux.onrender.com/api/items/';
@@ -48,9 +55,11 @@ export default function App() {
     fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form)
+      body: JSON.stringify(payload)
     }).then(response => {
-      if (!response.ok) throw new Error('Failed to save record');
+      if (!response.ok) {
+        return response.json().then(errData => { throw new Error(JSON.stringify(errData)); });
+      }
       return response.json();
     }).then(() => {
       showToast(`Asset registered: ${form.sku}`, 'success');
@@ -61,8 +70,7 @@ export default function App() {
       console.error("Error saving record:", err);
       showToast('Error saving record', 'error');
     });
-  };
-
+};
   const deleteItem = (id, sku) => {
     fetch(`http://127.0.0.1:8000/api/items/${id}/`, { method: 'DELETE' })
       .then(() => {
