@@ -28,13 +28,18 @@ export default function App() {
   };
 
   const fetchItems = () => {
-    fetch('http://127.0.0.1:8000/api/items/')
-      .then(res => res.json())
-      .then(data => setItems(data));
-  };
+  // Automatically switches based on environment
+  const API_URL = window.location.hostname === 'localhost'
+    ? 'http://127.0.0.1:8000/api/items/'
+    : 'https://inventory-backend-z2ux.onrender.com/api/items/';
 
-  useEffect(() => { fetchItems(); }, []);
-
+  fetch(API_URL)
+    .then(res => res.json())
+    .then(data => {
+      setItems(data); // Ensures your table state populates with the items from Render!
+    })
+    .catch(err => console.error("Error fetching items:", err));
+};
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = (e) => {
