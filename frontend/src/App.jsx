@@ -39,15 +39,27 @@ export default function App() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    fetch('http://127.0.0.1:8000/api/items/', {
+    
+    // Automatically uses local backend if running locally, and Render backend if deployed on Netlify
+    const API_URL = window.location.hostname === 'localhost' 
+      ? 'http://127.0.0.1:8000/api/items/' 
+      : 'https://inventory-backend-z2ux.onrender.com/api/items/';
+
+    fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form)
+    }).then(response => {
+      if (!response.ok) throw new Error('Failed to save record');
+      return response.json();
     }).then(() => {
       showToast(`Asset registered: ${form.sku}`, 'success');
       logActivity(`Registered new item: ${form.sku}`);
       setForm({ name: '', sku: '', category: 'Raw Materials', location: '', quantity: '', reorder_point: 10, price: '', supplier: '' });
       fetchItems();
+    }).catch(err => {
+      console.error("Error saving record:", err);
+      showToast('Error saving record', 'error');
     });
   };
 
