@@ -15,6 +15,11 @@ export default function App() {
     quantity: '', reorder_point: 10, price: '', supplier: '' 
   });
 
+  // Fetch initial data when component mounts
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
   const formatINR = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
   
   const showToast = (message, type = 'success') => {
@@ -28,24 +33,23 @@ export default function App() {
   };
 
   const fetchItems = () => {
-  // Automatically switches based on environment
-  const API_URL = window.location.hostname === 'localhost'
-    ? 'http://127.0.0.1:8000/api/items/'
-    : 'https://inventory-backend-z2ux.onrender.com/api/items/';
+    const API_URL = window.location.hostname === 'localhost'
+      ? 'http://127.0.0.1:8000/api/items/'
+      : 'https://inventory-backend-z2ux.onrender.com/api/items/';
 
-  fetch(API_URL)
-    .then(res => res.json())
-    .then(data => {
-      setItems(data); // Ensures your table state populates with the items from Render!
-    })
-    .catch(err => console.error("Error fetching items:", err));
-};
+    fetch(API_URL)
+      .then(res => res.json())
+      .then(data => {
+        setItems(data); 
+      })
+      .catch(err => console.error("Error fetching items:", err));
+  };
+  
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Ensure numeric fields are sent as actual numbers, not empty strings
     const payload = {
       ...form,
       quantity: form.quantity !== '' ? Number(form.quantity) : 0,
@@ -75,19 +79,32 @@ export default function App() {
       console.error("Error saving record:", err);
       showToast('Error saving record', 'error');
     });
-};
+  };
+
   const deleteItem = (id, sku) => {
-    fetch(`http://127.0.0.1:8000/api/items/${id}/`, { method: 'DELETE' })
+    const API_URL = window.location.hostname === 'localhost'
+      ? `http://127.0.0.1:8000/api/items/${id}/`
+      : `https://inventory-backend-z2ux.onrender.com/api/items/${id}/`;
+
+    fetch(API_URL, { method: 'DELETE' })
       .then(() => {
         showToast(`Asset deleted: ${sku}`, 'danger');
         logActivity(`Deleted item: ${sku}`);
         fetchItems();
+      })
+      .catch(err => {
+        console.error("Error deleting item:", err);
+        showToast('Error deleting record', 'error');
       });
   };
 
   const adjustStock = (item, amount) => {
     const newQty = Math.max(0, item.quantity + amount);
-    fetch(`http://127.0.0.1:8000/api/items/${item.id}/`, {
+    const API_URL = window.location.hostname === 'localhost'
+      ? `http://127.0.0.1:8000/api/items/${item.id}/`
+      : `https://inventory-backend-z2ux.onrender.com/api/items/${item.id}/`;
+
+    fetch(API_URL, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ quantity: newQty })
@@ -95,6 +112,9 @@ export default function App() {
       showToast(`Stock updated: ${item.sku}`, 'info');
       logActivity(`Adjusted stock for ${item.sku} (${amount > 0 ? '+' : ''}${amount})`);
       fetchItems();
+    }).catch(err => {
+      console.error("Error adjusting stock:", err);
+      showToast('Error updating stock', 'error');
     });
   };
 
